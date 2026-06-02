@@ -1,0 +1,7 @@
+# 隱藏 API 金鑰檔案
+*.env
+API key.env
+
+# 隱藏 Python 快取
+__pycache__/
+.streamlit/
