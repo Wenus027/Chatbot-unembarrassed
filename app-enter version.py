@@ -77,39 +77,38 @@ def get_search_results(query):
 # --- 4. 介面與對話邏輯 ---
 st.title("🤖 高情商對話助手")
 
-# 確保第一次開啟網頁時，記憶庫是存在的
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# 在介面的開頭加上
+# 1. 側邊欄整合（密碼驗證 + 清除按鈕放同一個地方）
 with st.sidebar:
+    st.title("⚙️ 控制面板")
     password = st.text_input("請輸入邀請碼才能使用：", type="password")
-
-if user_input:
-    if password != "654123":
-        st.error("邀請碼錯誤，無法進行分析。")
-    else:
-        # 執行原本的分析邏輯...
-
-# 側邊欄選單
-with st.sidebar:
+    
+    st.write("---") # 分隔線
+    
     if st.button("🗑️ 清除對話紀錄"):
         st.session_state.messages = []
         st.rerun()
 
-# 顯示歷史紀錄
+# 2. 密碼門禁判斷：如果密碼不對，直接卡住，不執行下方的聊天邏輯
+if password != "654123":
+    if password != "": # 使用者有輸入但輸錯時提示
+        st.error("❌ 邀請碼錯誤，無法使用此工具。")
+    else:
+        st.info("🔑 請在左側輸入邀請碼以解鎖助手功能。")
+    st.stop() # 🛑 核心關鍵：中斷後續程式碼執行
+
+# 3. 顯示歷史紀錄 (密碼正確才會看到這)
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 聊天輸入框 (Enter 傳送)
+# 4. 聊天輸入框 (Enter 傳送)
 if user_input := st.chat_input("請描述目前聊天現況..."):
-    # 1. 存儲並顯示用戶輸入
+    # 存儲並顯示用戶輸入
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)
 
-    # 2. 助手生成回應
+    # 助手生成回應
     with st.chat_message("assistant"):
         with st.spinner("🔍 正在聯網查證並思考建議..."):
             
@@ -120,13 +119,12 @@ if user_input := st.chat_input("請描述目前聊天現況..."):
             "{user_input}"
             只輸出關鍵字，不要有引號或解釋。
             """
-            # 注意：這裡 history=None 是關鍵，確保搜尋詞不被歷史帶偏
             search_query = call_gemini_api(kw_prompt, history=None).strip().replace('"', '').replace('*', '')
             
             # 【優化 B】：聯網搜尋
             search_data = get_search_results(search_query)
             
-            # 【優化 C】：生成最終建議 (帶入對話歷史以保持連續性)
+            # 【優化 C】：生成最終建議 (帶入完整上下文)
             final_prompt = f"""
             你是一位高情商對話助手。
             目前的對話現況："{user_input}"
@@ -143,14 +141,15 @@ if user_input := st.chat_input("請描述目前聊天現況..."):
             
             語氣要自然、溫暖，像好朋友在出主意。
             """
-            response = call_gemini_api(final_prompt, history=st.session_state.messages[:-1])
+            # 改為傳入完整 session_state 以保持上下文連貫
+            response = call_gemini_api(final_prompt, history=st.session_state.messages)
             
-            # 3. 顯示結果
+            # 顯示結果
             st.markdown(response)
             
-            # 顯示實際搜尋詞與來源 (除錯用)
-            with st.expander(f"📌 查看系統搜尋詞：{search_query}"):
-                st.markdown(search_data)
-            
-            # 4. 存入記憶
-            st.session_state.messages.append({"role": "assistant", "content": response})
+    # 將除錯用 Expander 移至對話框外，讓介面保持文青極簡感
+    with st.expander(f"📌 查看系統搜尋詞：{search_query}"):
+        st.markdown(search_data)
+    
+    # 存入記憶
+    st.session_state.messages.append({"role": "assistant", "content": response})
