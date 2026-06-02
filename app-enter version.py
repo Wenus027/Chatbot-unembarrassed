@@ -4,6 +4,7 @@ import os
 import time
 from duckduckgo_search import DDGS
 from dotenv import load_dotenv
+import streamlit as st
 
 
 # --- 1. 初始化與安全設定 ---
@@ -75,6 +76,10 @@ def get_search_results(query):
 
 # --- 4. 介面與對話邏輯 ---
 st.title("🤖 高情商對話助手")
+
+# 確保第一次開啟網頁時，記憶庫是存在的
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
 # 在介面的開頭加上
 	with st.sidebar:
