@@ -5,15 +5,6 @@ import time
 from duckduckgo_search import DDGS
 from dotenv import load_dotenv
 
-# 在介面的開頭加上
-with st.sidebar:
-    password = st.text_input("請輸入邀請碼才能使用：", type="password")
-
-if user_input:
-    if password != "654123":
-        st.error("邀請碼錯誤，無法進行分析。")
-    else:
-        # 執行原本的分析邏輯...
 
 # --- 1. 初始化與安全設定 ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -84,6 +75,16 @@ def get_search_results(query):
 
 # --- 4. 介面與對話邏輯 ---
 st.title("🤖 高情商對話助手")
+
+# 在介面的開頭加上
+with st.sidebar:
+    password = st.text_input("請輸入邀請碼才能使用：", type="password")
+
+if user_input:
+    if password != "654123":
+        st.error("邀請碼錯誤，無法進行分析。")
+    else:
+        # 執行原本的分析邏輯...
 
 # 側邊欄選單
 with st.sidebar:
