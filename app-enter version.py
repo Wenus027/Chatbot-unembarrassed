@@ -82,7 +82,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # 在介面的開頭加上
-	with st.sidebar:
+with st.sidebar:
     password = st.text_input("請輸入邀請碼才能使用：", type="password")
 
 if user_input:
