@@ -21,7 +21,7 @@ else:
 API_KEY = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY") #or os.getenv("API_KEY")
 
 # 【修正 A】模型設定：移除 "models/" 前綴，避免網址拼接錯誤
-MODEL_NAME = "gemini-3.5-flash"
+MODEL_NAME = "gemini-1.5-flash"
 
 # --- 3. 記憶初始化 ---
 if "messages" not in st.session_state:
