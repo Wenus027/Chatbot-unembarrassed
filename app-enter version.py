@@ -101,35 +101,45 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
 
+# 🔑 【核心修正】門禁機制：必須放在主邏輯最前端
+# 如果邀請碼不正確，直接凍結網頁，不執行後續程式碼
+if invite_code != "654123":
+    if invite_code != "":  # 使用者有輸入，但輸錯了
+        st.error("⚠️ 邀請碼錯誤，無法使用此工具。")
+    else:                  # 使用者尚未輸入任何內容
+        st.info("🔒 請在左側側邊欄輸入邀請碼以解鎖機器人功能。")
+    st.stop()              # 🛑 門禁卡：直接在這裡中斷執行，下方所有聊天介面都會被隱藏
+
+# -------------------------------------------------------------
+# 🔓 只有密碼輸入正確（654123），程式才會成功「走過」上面的 st.stop() 來到這裡
+# -------------------------------------------------------------
+
 # 顯示歷史紀錄
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 聊天輸入框
+# 聊天輸入框 (此時不需要再重複檢查邀請碼了)
 if user_input := st.chat_input("請描述目前聊天現況..."):
-    # 檢查邀請碼
-    if invite_code != "654123":
-        st.error("⚠️ 邀請碼錯誤，請在側邊欄輸入正確代碼後再發送訊息。")
-    else:
-        # 1. 存儲並顯示用戶輸入
-        st.session_state.messages.append({"role": "user", "content": user_input})
-        with st.chat_message("user"):
-            st.markdown(user_input)
+    
+    # 1. 存儲並顯示用戶輸入
+    st.session_state.messages.append({"role": "user", "content": user_input})
+    with st.chat_message("user"):
+        st.markdown(user_input)
 
-        # 2. 助手生成回應
-        with st.chat_message("assistant"):
-            with st.spinner("🔍 正在聯網查證並思考建議..."):
-                
-                # A. 提取關鍵字 (不帶歷史)
-                kw_prompt = f"你現在是一個搜尋字提取器。僅針對以下這句話提取 2-3 個適合在 Google 搜尋的繁體中文關鍵字，只輸出關鍵字，不要有解釋：\n\"{user_input}\""
-                search_query = call_gemini_api(kw_prompt, history=None).strip().replace('"', '').replace('*', '')
-                
-                # B. 聯網搜尋
-                search_data = get_search_results(search_query)
-                
-                # C. 生成最終建議 (直接帶入包含最新輸入的完整 messages 結構)
-                final_prompt = f"""你是一位高情商對話助手。
+    # 2. 助手生成回應
+    with st.chat_message("assistant"):
+        with st.spinner("🔍 正在聯網查證並思考建議..."):
+            
+            # A. 提取關鍵字 (不帶歷史)
+            kw_prompt = f"你現在是一個搜尋字提取器。僅針對以下這句話提取 2-3 個適合在 Google 搜尋的繁體中文關鍵字，只輸出關鍵字，不要有解釋：\n\"{user_input}\""
+            search_query = call_gemini_api(kw_prompt, history=None).strip().replace('"', '').replace('*', '')
+            
+            # B. 聯網搜尋
+            search_data = get_search_results(search_query)
+            
+            # C. 生成最終建議 (帶入包含最新輸入的完整 messages 結構)
+            final_prompt = f"""你是一位高情商對話助手。
 目前的對話現況："{user_input}"
 
 以下是系統為你搜集到的最新網路參考資料：
@@ -140,14 +150,13 @@ if user_input := st.chat_input("請描述目前聊天現況..."):
 請根據以上資訊提供：
 1. 【事實查證】：請精準回答搜尋資料中關於此話題的內容。
 2. 【3個高情商話題建議】：根據目前的語境，提供自然、能延續溫度的接話建議。"""
-                
-                # 【優化】這裡改傳完整 messages，配合上面的修正 B 機制，架構最安全
-                response = call_gemini_api(final_prompt, history=st.session_state.messages)
-                
-                # 3. 顯示結果
-                st.markdown(response)
-                with st.expander(f"📌 查看系統搜尋詞：{search_query}"):
-                    st.markdown(search_data)
-                
-                # 4. 存入記憶
-                st.session_state.messages.append({"role": "assistant", "content": response})
+            
+            response = call_gemini_api(final_prompt, history=st.session_state.messages)
+            
+            # 3. 顯示結果
+            st.markdown(response)
+            with st.expander(f"📌 查看系統搜尋詞：{search_query}"):
+                st.markdown(search_data)
+            
+            # 4. 存入記憶
+            st.session_state.messages.append({"role": "assistant", "content": response})
