@@ -34,7 +34,8 @@ def call_gemini_api(prompt, history=None, retries=3):
         return "❌ 錯誤：找不到 API Key，請在 Secrets 或 .env 中設定。"
     
     # 這裡的網址手動補上 models/，最符合官方 beta 版規範
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL_NAME}:generateContent?key={API_KEY}"
+    # 不管外面變數怎麼變，我們在網址裡強制拼出完美的官方格式
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
     headers = {'Content-Type': 'application/json'}
     
     contents = []
