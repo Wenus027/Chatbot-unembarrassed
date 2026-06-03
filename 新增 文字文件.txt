@@ -1,0 +1,15 @@
+# 初始化 Git
+git init
+
+# 將所有檔案加入暫存 (會自動排除 .gitignore 裡的東西)
+git add .
+
+# 提交檔案
+git commit -m "Initial commit: High EQ Chatbot with search and memory"
+
+# 連結到你的 GitHub (請換成你剛才建立的網址)
+git branch -M main
+git remote add origin https://github.com/Wenus027/Chatbot-unembarrassed.git
+
+# 上傳
+git push -u origin main
