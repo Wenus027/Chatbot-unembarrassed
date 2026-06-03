@@ -18,7 +18,7 @@ else:
     load_dotenv()
 
 # 優先從 Streamlit Secrets 讀取，若無則從環境變數讀取
-API_KEY = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY") or os.getenv("API_KEY")
+API_KEY = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY") #or os.getenv("API_KEY")
 
 # 【修正 A】模型設定：移除 "models/" 前綴，避免網址拼接錯誤
 MODEL_NAME = "gemini-3.5-flash"
